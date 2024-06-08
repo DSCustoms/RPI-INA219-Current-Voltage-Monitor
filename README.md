@@ -2,7 +2,7 @@
 A simple local web access ina219 current and voltage monitoring solution
 
 
-I just needed a way to have a device that could be plugged in between the battery and circuit of any of my projects to let me monitor the power consumption and charging characteristics in real time. The INA219 sensor is an excellent little board for this, very inexpensive. My setup for this project is a Raspberry Pi Zero 2W, an INA219 breakout pcb, and a battery pack. The INA219 has a variety of JST and power connectors on both sides for easy plug and play use. Don't forget the ground wire MUST be connected from the circuit you are monitoring to the ground on the ina219 and the raspberry pi, or it will ruin the results. 
+I just needed a way to have a device that could be plugged in between the battery and circuit of any of my projects to let me monitor the power consumption and charging characteristics in real time. The INA219 sensor is an excellent little board for this, very inexpensive. My setup for this project is a Raspberry Pi Zero 2W, an INA219 breakout pcb, and a battery pack. The INA219 has a variety of JST and power connectors on both sides for easy plug and play use. Don't forget the ground wire MUST be connected from the circuit you are monitoring to the ground on the ina219 and the raspberry pi, or it will ruin the results. Your network will need to be online for this to work, it uses an online service to generate the graphs. 
 
 Here's a step by step guide to get this set up
 
