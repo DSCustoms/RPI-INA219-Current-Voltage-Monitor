@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INA219 Sensor Data</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* CSS styles */
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>INA219 Sensor Data</h1>
+
+    <!-- Reset Button -->
+    <button class="button" onclick="resetData()">Reset</button>
+
+    <!-- Bus Voltage Plot -->
+    <div id="voltage-graph"></div>
+
+    <!-- Current Plot -->
+    <div id="current-graph"></div>
+
+    <!-- Power Plot -->
+    <div id="power-graph"></div>
+
+    <script>
+        // Read sensor data from the Flask template variable
+        var sensorData = {{ sensor_data | tojson }};
+
+        // Extract timestamps, bus voltage, current, and power
+        var timestamps = sensorData.map(data => data[0]);
+        var busVoltages = sensorData.map(data => parseFloat(data[1]));
+        var currents = sensorData.map(data => parseFloat(data[2]));
+        var powers = sensorData.map(data => parseFloat(data[3]));
+
+        // Function to calculate moving average
+        function movingAverage(data, windowSize) {
+            var smoothedData = [];
+            for (var i = 0; i < data.length; i++) {
+                var start = Math.max(0, i - windowSize + 1);
+                var end = i + 1;
+                var sum = data.slice(start, end).reduce((a, b) => a + b, 0);
+                var avg = sum / (end - start);
+                smoothedData.push(avg);
+            }
+            return smoothedData;
+        }
+
+        // Smooth out data using moving average
+        var windowSize = 20; // 10 seconds at 0.5 seconds polling interval
+        var smoothedVoltages = movingAverage(busVoltages, windowSize);
+        var smoothedCurrents = movingAverage(currents, windowSize);
+        var smoothedPowers = movingAverage(powers, windowSize);
+
+        // Create traces for each parameter
+        var traceVoltage = {
+            x: timestamps,
+            y: smoothedVoltages,
+            mode: 'lines',
+            name: 'Bus Voltage (V)',
+            line: { color: 'blue' }
+        };
+
+        var traceCurrent = {
+            x: timestamps,
+            y: smoothedCurrents,
+            mode: 'lines',
+            name: 'Current (mA)',
+            line: { color: 'red' }
+        };
+
+        var tracePower = {
+            x: timestamps,
+            y: smoothedPowers,
+            mode: 'lines',
+            name: 'Power (mW)',
+            line: { color: 'green' }
+        };
+
+        // Define layout options for each graph
+        var layoutVoltage = {
+            width: 1800, // Adjust width here
+            height: 300,
+            title: 'Bus Voltage (V)',
+            xaxis: { title: 'Timestamp' },
+            yaxis: { title: 'Voltage (V)' }
+        };
+
+        var layoutCurrent = {
+            width: 1800, // Adjust width here
+            height: 400,
+            title: 'Current (mA)',
+            xaxis: { title: 'Timestamp' },
+            yaxis: { title: 'Current (mA)' }
+        };
+
+        var layoutPower = {
+            width: 1800, // Adjust width here
+            height: 300,
+            title: 'Power (mW)',
+            xaxis: { title: 'Timestamp' },
+            yaxis: { title: 'Power (mW)' }
+        };
+
+        // Plot the graphs
+        Plotly.newPlot('voltage-graph', [traceVoltage], layoutVoltage);
+        Plotly.newPlot('current-graph', [traceCurrent], layoutCurrent);
+        Plotly.newPlot('power-graph', [tracePower], layoutPower);
+
+        // Function to reset sensor data
+        function resetData() {
+            fetch('/reset', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Sensor data reset successfully.');
+                    location.reload(); // Reload the page to update the data
+                } else {
+                    alert('Failed to reset sensor data: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Failed to reset sensor data: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
